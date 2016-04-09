@@ -1,23 +1,23 @@
-IDIR =src/include
-CC=gcc
-CFLAGS=-I$(IDIR) -W -Wall -Werror
+IDIR 									= ./include
+CC 										= gcc
+CFLAGS 								= -I$(IDIR) -W -Wall -Werror
 
-ODIR=./src
-LDIR =../lib
+LDIR 									= ./lib
 
-LIBS=-lm
+LIBS									= -lm
 
-_DEPS = functions.h macros.h
-DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
+_DEPS 								= functions.h macros.h
+DEPS 									= $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = brookshear-emulator.o functions.o
-OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
+MAIN 									= ./src/brookshear-emulator.o
 
+_OBJ 									= functions.o
+OBJ 									= $(patsubst %,$(LDIR)/%,$(_OBJ))
 
-$(ODIR)/%.o: %.c $(DEPS)
+$(LDIR)/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-Brookshear-Emulator: $(OBJ)
+Brookshear-Emulator: $(OBJ) $(MAIN)
 	gcc -o $@ $^ $(CFLAGS) $(LIBS)
 
 .PHONY: clean
