@@ -24,7 +24,7 @@ void Run_Brookshear(void)
         instr_bits[4] = memory[program_counter + 1];
 
         Print_Values(memory, program_counter, registers);
-        Process_Instruction(&memory, &program_counter, &registers, &instr_bits);
+        Process_Instruction(&memory[0], &program_counter, &registers[0], &instr_bits[0]);
     }
 
     free(memory);
@@ -39,9 +39,9 @@ unsigned char* File_Reader(void)
         exit(1);
     }
 
-    unsigned char buffer[BUFF_SIZE] = { '\0' };
+    char buffer[BUFF_SIZE] = { '\0' };
     unsigned int instruction = 0;
-    unsigned char* memory = (char*)malloc(MEM_SIZE * sizeof(unsigned char));
+    unsigned char* memory = (unsigned char*)malloc(MEM_SIZE * sizeof(unsigned char));
 
     // -1 to account for the first increment in the first iteration.
     int i = -1;
