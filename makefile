@@ -10,17 +10,17 @@ LIBS=-lm
 _DEPS = functions.h macros.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = ap-brookshear-emulator.o functions.o
+_OBJ = brookshear-emulator.o functions.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 
 $(ODIR)/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
-AP-Brookshear-Emulator: $(OBJ)
+Brookshear-Emulator: $(OBJ)
 	gcc -o $@ $^ $(CFLAGS) $(LIBS)
 
 .PHONY: clean
 
 clean:
-	rm -f ./*.o $(ODIR)/*.o *~ core $(IDIR)/*~
+	rm -f ./*.o $(ODIR)/*.o *~ core $(IDIR)/*~ ./Brookshear-Emulator

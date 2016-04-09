@@ -9,7 +9,7 @@
 #include "functions.h"
 
 int main(void) {
-  Run_Brookshear();
+  _runBrookshear();
 
   return 0;
 }

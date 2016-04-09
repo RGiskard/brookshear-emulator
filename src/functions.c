@@ -4,12 +4,12 @@
 #include "macros.h"
 #include "functions.h"
 
-void Run_Brookshear(void) {
-  Print_Heading();
+void _runBrookshear(void) {
+  _printHeading();
 
   // Four bits in each index, 5th index contains the entire second byte.
   unsigned int instr_bits[5]            = { 0 };
-  unsigned char* memory                 = File_Reader();
+  unsigned char* memory                 = _fileReader();
   unsigned char program_counter         = 0;
   unsigned char registers[N_REGISTERS]  = { 0 };
 
@@ -22,18 +22,18 @@ void Run_Brookshear(void) {
     instr_bits[3] = memory[program_counter + 1] & 0xf;
     instr_bits[4] = memory[program_counter + 1];
 
-    Print_Values(memory, program_counter, registers);
-    Process_Instruction(&memory[0], &program_counter, &registers[0], &instr_bits[0]);
+    _printValues(memory, program_counter, registers);
+    _processInstruction(&memory[0], &program_counter, &registers[0], &instr_bits[0]);
   }
 
   free(memory);
 }
 
-void Print_Heading(void) {
+void _printHeading(void) {
   fprintf(stdout, "PC INST - [R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 RA RB RC RD RE RF]\n");
 }
 
-unsigned char* File_Reader(void) {
+unsigned char* _fileReader(void) {
   FILE* fp = fopen(INSTR_FILE, "r");
   if (!fp) {
     fprintf(stderr, "Error! Can't open %s.\n", INSTR_FILE);
@@ -69,7 +69,7 @@ unsigned char* File_Reader(void) {
   return memory;
 }
 
-void Print_Values(unsigned char* _memory,
+void _printValues(unsigned char* _memory,
                   unsigned char _program_counter,
                   unsigned char* _registers)
 {
@@ -85,7 +85,7 @@ void Print_Values(unsigned char* _memory,
   }
 }
 
-void Process_Instruction(unsigned char* _memory,
+void _processInstruction(unsigned char* _memory,
                          unsigned char* _program_counter,
                          unsigned char* _registers,
                          unsigned int* _instruction)
