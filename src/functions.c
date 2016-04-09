@@ -13,9 +13,7 @@ void _runBrookshear(void) {
   unsigned char program_counter         = 0;
   unsigned char registers[N_REGISTERS]  = { 0 };
 
-  // Begin simulation loop.
   while (instr_bits[0] != 0xC) {
-    // Split instruction bits.
     instr_bits[0] = (memory[program_counter] & 0xf0) >> 0x4;
     instr_bits[1] = memory[program_counter] & 0xf;
     instr_bits[2] = (memory[program_counter + 1] & 0xf0) >> 0x4;
@@ -44,7 +42,7 @@ unsigned char* _fileReader(void) {
   unsigned int instruction  = 0;
   unsigned char* memory     = (unsigned char*)malloc(MEM_SIZE * sizeof(unsigned char));
 
-  // -1 to account for the first increment in the first iteration.
+  // -1 to account for the initial increment,
   int i = -1;
   bool halt_exists = false;
   while (fgets(buffer, BUFF_SIZE, fp)) {
@@ -64,19 +62,17 @@ unsigned char* _fileReader(void) {
     exit(1);
   }
 
-  // We're good.
   fclose(fp);
   return memory;
 }
 
-void _printValues(unsigned char* _memory,
-                  unsigned char _program_counter,
-                  unsigned char* _registers)
+void _printValues(unsigned char*    _memory,
+                  unsigned char     _program_counter,
+                  unsigned char*    _registers)
 {
   fprintf(stdout, "%02X %02X%02X - [", _program_counter, _memory[_program_counter], _memory[_program_counter + 1]);
 
   for (int i = 0; i < 16; ++i) {
-    // Proper formatting for final register, as per assignment brief.
     if (i == 15) {
       fprintf(stdout, "%02X]\n", _registers[i]);
     } else {
@@ -85,12 +81,13 @@ void _printValues(unsigned char* _memory,
   }
 }
 
-void _processInstruction(unsigned char* _memory,
-                         unsigned char* _program_counter,
-                         unsigned char* _registers,
-                         unsigned int* _instruction)
+void _processInstruction(unsigned char*   _memory,
+                         unsigned char*   _program_counter,
+                         unsigned char*   _registers,
+                         unsigned int*    _instruction)
 {
   switch(_instruction[0]) {
+
     // Load register B with the value at memory address CD.
     case 0x1:
       _registers[_instruction[1]] = _memory[_instruction[4]];
