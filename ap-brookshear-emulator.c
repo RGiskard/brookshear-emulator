@@ -5,13 +5,10 @@
  *  A 16-bit Brookshear Machine emulator.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include "include/macros.h"
-#include "include/functions.h"
+#include "macros.h"
+#include "functions.h"
 
-int main(int arc, char** argv)
+int main(void)
 {
     Run_Brookshear();
 

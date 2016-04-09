@@ -1,3 +1,9 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include "macros.h"
+#include "functions.h"
+
 void Run_Brookshear(void)
 {
     // Four bits in each index, 5th index contains the entire second byte.
