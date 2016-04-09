@@ -8,9 +8,8 @@
 #include "macros.h"
 #include "functions.h"
 
-int main(void)
-{
-    Run_Brookshear();
+int main(void) {
+  Run_Brookshear();
 
-    return 0;
+  return 0;
 }

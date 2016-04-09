@@ -4,181 +4,159 @@
 #include "macros.h"
 #include "functions.h"
 
-void Run_Brookshear(void)
-{
-    Print_Heading();
+void Run_Brookshear(void) {
+  Print_Heading();
 
-    // Four bits in each index, 5th index contains the entire second byte.
-    unsigned int instr_bits[5] = { 0 };
+  // Four bits in each index, 5th index contains the entire second byte.
+  unsigned int instr_bits[5]            = { 0 };
+  unsigned char* memory                 = File_Reader();
+  unsigned char program_counter         = 0;
+  unsigned char registers[N_REGISTERS]  = { 0 };
 
-    unsigned char* memory = File_Reader();
-    unsigned char program_counter = 0;
-    unsigned char registers[N_REGISTERS] = { 0 };
+  // Begin simulation loop.
+  while (instr_bits[0] != 0xC) {
+    // Split instruction bits.
+    instr_bits[0] = (memory[program_counter] & 0xf0) >> 0x4;
+    instr_bits[1] = memory[program_counter] & 0xf;
+    instr_bits[2] = (memory[program_counter + 1] & 0xf0) >> 0x4;
+    instr_bits[3] = memory[program_counter + 1] & 0xf;
+    instr_bits[4] = memory[program_counter + 1];
 
-    // Begin simulation loop.
-    while (instr_bits[0] != 0xC)
-    {
-        // Split instruction bits.
-        instr_bits[0] = (memory[program_counter] & 0xf0) >> 0x4;
-        instr_bits[1] = memory[program_counter] & 0xf;
-        instr_bits[2] = (memory[program_counter + 1] & 0xf0) >> 0x4;
-        instr_bits[3] = memory[program_counter + 1] & 0xf;
-        instr_bits[4] = memory[program_counter + 1];
+    Print_Values(memory, program_counter, registers);
+    Process_Instruction(&memory[0], &program_counter, &registers[0], &instr_bits[0]);
+  }
 
-        Print_Values(memory, program_counter, registers);
-        Process_Instruction(&memory[0], &program_counter, &registers[0], &instr_bits[0]);
-    }
-
-    free(memory);
+  free(memory);
 }
 
-void Print_Heading(void)
-{
+void Print_Heading(void) {
   fprintf(stdout, "PC INST - [R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 RA RB RC RD RE RF]\n");
 }
 
-unsigned char* File_Reader(void)
-{
-    FILE* fp = fopen(INSTR_FILE, "r");
-    if (!fp)
-    {
-        fprintf(stderr, "Error! Can't open %s.\n", INSTR_FILE);
-        exit(1);
+unsigned char* File_Reader(void) {
+  FILE* fp = fopen(INSTR_FILE, "r");
+  if (!fp) {
+    fprintf(stderr, "Error! Can't open %s.\n", INSTR_FILE);
+    exit(1);
+  }
+
+  char buffer[BUFF_SIZE]    = { '\0' };
+  unsigned int instruction  = 0;
+  unsigned char* memory     = (unsigned char*)malloc(MEM_SIZE * sizeof(unsigned char));
+
+  // -1 to account for the first increment in the first iteration.
+  int i = -1;
+  bool halt_exists = false;
+  while (fgets(buffer, BUFF_SIZE, fp)) {
+    if (buffer[0] == 'C') {
+        halt_exists = true;
     }
 
-    char buffer[BUFF_SIZE] = { '\0' };
-    unsigned int instruction = 0;
-    unsigned char* memory = (unsigned char*)malloc(MEM_SIZE * sizeof(unsigned char));
+    // Split each line into two bytes, store in memory array.
+    sscanf(buffer, "%X", &instruction);
+    memory[++i] = (instruction & 0xff00) >> 0x8;
+    memory[++i] = instruction & 0xff;
+  }
 
-    // -1 to account for the first increment in the first iteration.
-    int i = -1;
+  if (!halt_exists) {
+    fprintf(stderr, "Error! %s doesn't contain a halt (C000) instruction.\n", INSTR_FILE);
+    free(memory);
+    exit(1);
+  }
 
-    bool halt_exists = false;
-    while (fgets(buffer, BUFF_SIZE, fp))
-    {
-        if (buffer[0] == 'C')
-        {
-            halt_exists = true;
-        }
-
-        // Split each line into two bytes, store in memory array.
-        sscanf(buffer, "%X", &instruction);
-        memory[++i] = (instruction & 0xff00) >> 0x8;
-        memory[++i] = instruction & 0xff;
-    }
-
-    if (!halt_exists)
-    {
-        fprintf(stderr, "Error! %s doesn't contain a halt (C000) instruction.\n", INSTR_FILE);
-        free(memory);
-        exit(1);
-    }
-
-    // We're good.
-    fclose(fp);
-    return memory;
+  // We're good.
+  fclose(fp);
+  return memory;
 }
 
-void Print_Values   (
-                        unsigned char* _memory,
-                        unsigned char _program_counter,
-                        unsigned char* _registers
-                    )
+void Print_Values(unsigned char* _memory,
+                  unsigned char _program_counter,
+                  unsigned char* _registers)
 {
-    fprintf(stdout, "%02X %02X%02X - [", _program_counter, _memory[_program_counter], _memory[_program_counter + 1]);
-    for (int i = 0; i < 16; ++i)
-    {
-        // Proper formatting for final register, as per assignment brief.
-        if (i == 15)
-        {
-            fprintf(stdout, "%02X]\n", _registers[i]);
-        }
-        else
-        {
-            fprintf(stdout, "%02X ", _registers[i]);
-        }
+  fprintf(stdout, "%02X %02X%02X - [", _program_counter, _memory[_program_counter], _memory[_program_counter + 1]);
+
+  for (int i = 0; i < 16; ++i) {
+    // Proper formatting for final register, as per assignment brief.
+    if (i == 15) {
+      fprintf(stdout, "%02X]\n", _registers[i]);
+    } else {
+      fprintf(stdout, "%02X ", _registers[i]);
     }
+  }
 }
 
-void Process_Instruction    (
-                                unsigned char* _memory,
-                                unsigned char* _program_counter,
-                                unsigned char* _registers,
-                                unsigned int* _instruction
-                            )
+void Process_Instruction(unsigned char* _memory,
+                         unsigned char* _program_counter,
+                         unsigned char* _registers,
+                         unsigned int* _instruction)
 {
-    switch(_instruction[0]) {
+  switch(_instruction[0]) {
+    // Load register B with the value at memory address CD.
+    case 0x1:
+      _registers[_instruction[1]] = _memory[_instruction[4]];
+      break;
 
-      // Load register B with the value at memory address CD.
-      case 0x1:
-        _registers[_instruction[1]] = _memory[_instruction[4]];
-        break;
+    // Load register B with the value CD.
+    case 0x2:
+      _registers[_instruction[1]] = _instruction[4];
+      break;
 
-      // Load register B with the value CD.
-      case 0x2:
-        _registers[_instruction[1]] = _instruction[4];
-        *_program_counter += 2;
-        break;
+    // Store the value in register B at memory address CD.
+    case 0x3:
+      _memory[_instruction[4]] = _registers[_instruction[1]];
+      break;
 
-      // Store the value in register B at memory address CD.
-      case 0x3:
-        _memory[_instruction[4]] = _registers[_instruction[1]];
-        *_program_counter += 2;
-        break;
+    // Copy/move the value in register C to register D.
+    case 0x4:
+      _registers[_instruction[3]] = _registers[_instruction[2]];
+      break;
 
-      // Copy/move the value in register C to register D.
-      case 0x4:
-        _registers[_instruction[3]] = _registers[_instruction[2]];
-        *_program_counter += 2;
-        break;
+    // Add the values in registers B and C and put the answer in register D.
+    case 0x5:
+      _registers[_instruction[3]] = _registers[_instruction[1]] + _registers[_instruction[2]];
+      break;
 
-      // Add the values in registers B and C and put the answer in register D.
-      case 0x5:
-        _registers[_instruction[3]] = _registers[_instruction[1]] + _registers[_instruction[2]];
-        *_program_counter += 2;
-        break;
+    // OR the values in registers B and C and put the answer in register D.
+    case 0x7:
+      _registers[_instruction[3]] = _registers[_instruction[1]] | _registers[_instruction[2]];
+      break;
 
-      // OR the values in registers B and C and put the answer in register D.
-      case 0x7:
-        _registers[_instruction[3]] = _registers[_instruction[1]] | _registers[_instruction[2]];
-        *_program_counter += 2;
-        break;
+    // AND the values in registers B and C and put the answer in register D.
+    case 0x8:
+      _registers[_instruction[3]] = _registers[_instruction[1]] & _registers[_instruction[2]];
+      break;
 
-      // AND the values in registers B and C and put the answer in register D.
-      case 0x8:
-        _registers[_instruction[3]] = _registers[_instruction[1]] & _registers[_instruction[2]];
-        *_program_counter += 2;
-        break;
+    // XOR the values in registers B and C and put the answer in register D.
+    case 0x9:
+      _registers[_instruction[3]] = _registers[_instruction[1]] ^ _registers[_instruction[2]];
+      break;
 
-      // XOR the values in registers B and C and put the answer in register D.
-      case 0x9:
-        _registers[_instruction[3]] = _registers[_instruction[1]] ^ _registers[_instruction[2]];
-        *_program_counter += 2;
-        break;
+    // Rotate the contents of register B CD times to the right.
+    case 0xA:
+      for (unsigned int i = 0; i < _instruction[4]; ++i) {
+          unsigned int temp = _registers[_instruction[1]] & 0x01;
+          _registers[_instruction[1]] = (_registers[_instruction[1]] >> 1) | (_registers[_instruction[1]] & temp) << 7;
+      }
+      break;
 
-      // Rotate the contents of register B CD times to the right.
-      case 0xA:
-        for (unsigned int i = 0; i < _instruction[4]; ++i)
-        {
-            unsigned int temp = _registers[_instruction[1]] & 0x01;
-            _registers[_instruction[1]] = (_registers[_instruction[1]] >> 1) | (_registers[_instruction[1]] & temp) << 7;
-        }
+    /**
+     *  Jump to the instruction located at memory address CD if the value in register B is equal to the value in
+     *  register 0.
+     */
+    case 0xB:
+      *_program_counter = (_registers[_instruction[1]] == 0) || (_registers[_instruction[1]] == _registers[0])
+        ? _instruction[4]
+        // Cast to prevent comparison warning.
+        : *_program_counter + (unsigned)2;
+      return;
 
-        *_program_counter += 2;
-        break;
+    case 0xC:
+      return;
 
-      // Jump to the instruction located at memory address CD if the value in register B is equal to the value in register 0.
-      case 0xB:
-        *_program_counter = (_registers[_instruction[1]] == 0) || (_registers[_instruction[1]] == _registers[0])
-          ? _instruction[4]
-          : *_program_counter + (unsigned)2;
-        return;
+    default:
+      fprintf(stderr, "Error: Failed reading instruction.");
+      return;
+  }
 
-      case 0xC:
-        return;
-
-      default:
-        fprintf(stderr, "Error: Failed reading instruction.");
-        return;
-    }
+  *_program_counter += 2;
 }
