@@ -6,6 +6,8 @@
 
 void Run_Brookshear(void)
 {
+    Print_Heading();
+
     // Four bits in each index, 5th index contains the entire second byte.
     unsigned int instr_bits[5] = { 0 };
 
@@ -28,6 +30,11 @@ void Run_Brookshear(void)
     }
 
     free(memory);
+}
+
+void Print_Heading(void)
+{
+  fprintf(stdout, "PC INST - [R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 RA RB RC RD RE RF]\n");
 }
 
 unsigned char* File_Reader(void)

@@ -4,6 +4,11 @@
 void Run_Brookshear(void);
 
 /**
+ *  Print heading for output.
+ */
+void Print_Heading(void);
+
+/**
  *  Create array of instructions from file.
  */
 unsigned char* File_Reader(void);
