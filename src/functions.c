@@ -100,65 +100,57 @@ void Process_Instruction    (
                                 unsigned int* _instruction
                             )
 {
-    // Load register B with the value at memory address CD.
-    if (_instruction[0] == 0x1)
-    {
-        _registers[_instruction[1]] = _memory[_instruction[4]];
-        *_program_counter += 2;
-    }
+    switch(_instruction[0]) {
 
-    // Load register B with the value CD.
-    else if (_instruction[0] == 0x2)
-    {
+      // Load register B with the value at memory address CD.
+      case 0x1:
+        _registers[_instruction[1]] = _memory[_instruction[4]];
+        break;
+
+      // Load register B with the value CD.
+      case 0x2:
         _registers[_instruction[1]] = _instruction[4];
         *_program_counter += 2;
-    }
+        break;
 
-    // Store the value in register B at memory address CD.
-    else if (_instruction[0] == 0x3)
-    {
+      // Store the value in register B at memory address CD.
+      case 0x3:
         _memory[_instruction[4]] = _registers[_instruction[1]];
         *_program_counter += 2;
-    }
+        break;
 
-    // Copy/move the value in register C to register D.
-    else if (_instruction[0] == 0x4)
-    {
+      // Copy/move the value in register C to register D.
+      case 0x4:
         _registers[_instruction[3]] = _registers[_instruction[2]];
         *_program_counter += 2;
-    }
+        break;
 
-    // Add the values in registers B and C and put the answer in register D.
-    else if (_instruction[0] == 0x5)
-    {
+      // Add the values in registers B and C and put the answer in register D.
+      case 0x5:
         _registers[_instruction[3]] = _registers[_instruction[1]] + _registers[_instruction[2]];
         *_program_counter += 2;
-    }
+        break;
 
-    // OR the values in registers B and C and put the answer in register D.
-    else if (_instruction[0] == 0x7)
-    {
+      // OR the values in registers B and C and put the answer in register D.
+      case 0x7:
         _registers[_instruction[3]] = _registers[_instruction[1]] | _registers[_instruction[2]];
         *_program_counter += 2;
-    }
+        break;
 
-    // AND the values in registers B and C and put the answer in register D.
-    else if (_instruction[0] == 0x8)
-    {
+      // AND the values in registers B and C and put the answer in register D.
+      case 0x8:
         _registers[_instruction[3]] = _registers[_instruction[1]] & _registers[_instruction[2]];
         *_program_counter += 2;
-    }
+        break;
 
-    // XOR the values in registers B and C and put the answer in register D.
-    else if (_instruction[0] == 0x9)
-    {
+      // XOR the values in registers B and C and put the answer in register D.
+      case 0x9:
         _registers[_instruction[3]] = _registers[_instruction[1]] ^ _registers[_instruction[2]];
         *_program_counter += 2;
-    }
+        break;
 
-    // Rotate the contents of register B CD times to the right.
-    else if (_instruction[0] == 0xA)
-    {
+      // Rotate the contents of register B CD times to the right.
+      case 0xA:
         for (unsigned int i = 0; i < _instruction[4]; ++i)
         {
             unsigned int temp = _registers[_instruction[1]] & 0x01;
@@ -166,18 +158,20 @@ void Process_Instruction    (
         }
 
         *_program_counter += 2;
-    }
+        break;
 
-    // Jump to the instruction located at memory address CD if the value in register B is equal to the value in register 0.
-    else if (_instruction[0] == 0xB)
-    {
-        if ((_registers[_instruction[1]] == 0) || (_registers[_instruction[1]] == _registers[0]))
-        {
-            *_program_counter = _instruction[4];
-        }
-        else
-        {
-            *_program_counter += 2;
-        }
+      // Jump to the instruction located at memory address CD if the value in register B is equal to the value in register 0.
+      case 0xB:
+        *_program_counter = (_registers[_instruction[1]] == 0) || (_registers[_instruction[1]] == _registers[0])
+          ? _instruction[4]
+          : *_program_counter + (unsigned)2;
+        return;
+
+      case 0xC:
+        return;
+
+      default:
+        fprintf(stderr, "Error: Failed reading instruction.");
+        return;
     }
 }
