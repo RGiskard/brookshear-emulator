@@ -15,5 +15,5 @@
 
 // File containing instructions.
 #ifndef INSTR_FILE
-#define INSTR_FILE "a3.txt"
+#define INSTR_FILE "instructions.dat"
 #endif
